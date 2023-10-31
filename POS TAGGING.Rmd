@@ -1,0 +1,192 @@
+---
+title: "pos tagging r"
+author: "wahyu"
+date: "5/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ashish Kumar, Avinash Paul - Mastering Text Mining with R-Packt Publishing (2016)
+
+The parts of speech Tagger tags each token with their corresponding parts of speech, utilizing lexical statistics, context, meaning, and their relative position with respect to adjacent tokens. 
+
+The same token may be labeled with multiple syntactic labels based
+on the context. Or some word tokens may be labeled with X POS tag (in Universal POS Tagger) to denote short-hand for common words or misspelled words. 
+
+POS tagging helps a great deal in resolving lexical ambiguity. R has an OpenNLP package that provides POS tagger functions, leveraging maximum entropy model:
+
+```{r cars}
+pos.packages <-c("NLP","openNLP","openNLPdata")
+install.packages(pos.packages)
+```
+
+```{r}
+library("NLP")
+library("openNLP")
+library("openNLPdata")
+```
+
+Let's take a simple and short text as shown in the following code:
+
+```{r}
+s <- "Pierre Vinken , 61 years old , will join the board as a
+nonexecutive director Nov. 29. Mr. Vinken is chairman of Elsevier N.V.
+, the Dutch publishing group ."
+str <- as.String(s)
+str
+```
+
+First, we will annotate the sentence using the function `Maxent_Sent_Token_ Annotator ()`; we can use different models for different languages. 
+
+The default language used by the functions is en language="en", which will use the default model under the language en that is under OpenNLPdata, that is, en-sent.bin:
+
+```{r}
+sentAnnotator <- Maxent_Sent_Token_Annotator(language = "en", probs =
+                                               TRUE, model =NULL)
+
+```
+
+The value for the model is a character string giving the path to the Maxent model file to be used, NULL indicating the use of a default model file for the given language.
+
+```{r}
+annotated_sentence <- annotate(s,sentAnnotator)
+annotated_sentence
+```
+
+• The id column is just a numbering of the number of detected sentences
+• The start column denotes the character at which the sentence started
+• The end column denotes the character at which the sentence ended
+• The features columns tells us the confidence level or the probability of the detected sentences
+
+In order to apply the id to actual text, that is to find out all the sentences, we can pass the actual text to the annotator object as shown in the following code:
+
+```{r}
+actualSentence <- str
+actualSentence [annotated_sentence]
+```
+
+Once we have annotated the sentence we can go to the next step of annotating the words. We can annotate each word by passing the annotated sentence to a word annotator Maxent_Word_Token_Annotator () as shown in the following code. 
+
+We can use different models for different languages. The default language is en. This uses the model that is under OpenNLPdata, that is, en-token.bin:
+
+```{r}
+wordAnnotator <- Maxent_Word_Token_Annotator(language = "en", probs =
+                                               TRUE, model =NULL)
+annotated_word<- annotate(s,wordAnnotator,annotated_sentence)
+
+```
+
+We have to pass the sentence to the word annotator function. If the sentence annotator is not executed — that is if the sentences are not annotated — the word annotator will produce an error as shown in the following screenshot:
+
+```{r}
+annotated_word
+#head(annotated_word)
+```
+
+Let's look at the output shown here and understand how to interpret it:
+• The id column is just a numbering of the number of detected sentences/words
+• The start column denotes the character at which the word started
+• The end column denotes the character at which the word ended
+• The features columns tells us the confidence level or the probability of the detected words
+
+Now, we are going to do POS tagging on the sentence to which we have applied both sentence and word annotator.We can use different models for different languages. The default is en; it uses the model that is under OpenNLPdata, that is, en-pos-maxent.bin.If needed, we can load a different model as shown in the following code:
+
+```{r}
+install.packages("openNLPmodels.en", repos = "http://datacube.wu.ac.at/", type = "source")
+library("openNLPmodels.en")
+
+```
+
+
+For this example, we will go ahead with the default model. First, the POS model must be loaded into the memory from disk or other source:
+
+```{r}
+pos_token_annotator_model <- Maxent_POS_Tag_Annotator(language = "en",
+                                                      probs = TRUE, model = system.file("models", "en-pos-perceptron.bin",
+                                                                                        package = "openNLPmodels.en"))
+```
+
+
+```{r}
+pos_tag_annotator <- Maxent_POS_Tag_Annotator(language = "en", probs =
+                                                TRUE, model =NULL)
+pos_tag_annotator
+```
+
+The POS tagger instance is now ready to tag data. It expects a tokenized sentence as input, which is represented as a string array; each string object in the array is one token:
+
+```{r}
+posTaggedSentence <- annotate(s, pos_tag_annotator, annotated_word)
+posTaggedSentence
+
+```
+
+From the following screenshot, we can see that each word contains one parts of speech tag, the start and the end index of the word, and the confidence scores of each tag:
+
+```{r}
+head(posTaggedSentence)
+```
+
+Let's concentrate on the distribution of POS tags for word tokens:
+
+```{r}
+posTaggedWords <- subset(posTaggedSentence, type == "word")
+posTaggedWords
+```
+
+Extract only the features from the annotator:
+
+```{r}
+tags <- sapply(posTaggedWords$features, `[[`, "POS")
+tags
+```
+
+we can see the number of tags present in the sentence, for example, how many "noun, proper, singular", "noun, common, plural" are present, and many more:
+
+```{r}
+table(tags)
+```
+
+Let's extract word/POS pairs to make it more readable:
+
+```{r}
+sprintf("%s -- %s", str[posTaggedWords], tags)
+```
+
+We can use a tag dictionary, which specifies the tags each token can have. Using a tag dictionary has two advantages. Firstly, inappropriate tags can not bee assigned to tokens in the dictionary, and secondly, the beam search algorithm has to consider fewer possibilities and can search faster. Various pre-trained POS models for OpenNLP can be found at:
+
+http://opennlp.sourceforge.net/models-1.5/
+
+---
+title: "POS Tagging"
+author: "Sindy Aprilia Arintasari"
+date: "5/31/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

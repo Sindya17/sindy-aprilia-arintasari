@@ -1,0 +1,74 @@
+---
+title: "DASHBOARD"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+glimpse(gapminder)
+as_tibble(gapminder)
+
+#Mengambil data tahun <1980
+gapminder.dt<-filter(gapminder, year<1980)
+as_tibble(gapminder.dt)
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### MAPPING
+
+```{r}
+#Menampilkan Mapping country dan rata-rata lifeExp berdasarkan tahun
+ggplot() +
+  geom_point(data = gapminder.dt,
+             mapping = aes(x = country, y = lifeExp, colour = year))+ ggtitle("Mapping of Country and lifeExp by Year")
+
+```
+
+### BOXPLOT
+```{r}
+ggplot(data=gapminder.dt, aes(y=lifeExp,x=year,fill=continent))+
+  geom_boxplot()+
+  ggtitle("Boxplot of Year and LifeExp by Continent")
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### HISTOGRAM
+
+```{r}
+avg_lifeExp=mean(gapminder.dt$lifeExp)
+std_lifeExp=sd(gapminder.dt$lifeExp)
+ggplot(data=gapminder.dt, aes(x=lifeExp))+
+  geom_histogram(aes(y=..density.., col="blue")) +  # scale histogram y
+  geom_density(col = "red",size=1)+
+  geom_vline(aes(xintercept=avg_lifeExp),linetype="dashed")+
+  ggtitle("Histogram of lifeExp")
+          
+```
+
+### DISTRIBUSI
+
+```{r}
+ggplot(data=gapminder.dt, aes(x=lifeExp, fill=continent))+
+  geom_density(adjust=1, kernel="gaussian")+
+facet_grid(rows=vars(continent))+
+  ggtitle("Distribution of lifeExp by Continent")
+```
+
+### BARCHART
+
+```{r}
+ggplot(data=gapminder.dt, aes(x=year,y=pop,fill=continent))+
+  geom_col(position="dodge")+
+  ggtitle("Barchart of Year and Pop by Continent")
+```

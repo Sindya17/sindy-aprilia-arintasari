@@ -1,0 +1,72 @@
+---
+title: "Flexdashboard Example"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+diamonds %>% 
+  select(carat,cut,color,clarity,depth,table,price) %>% 
+  filter(between(carat, 0.2, 4.0))
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### HISTOGRAM
+
+```{r}
+avg_price=mean(diamonds$price)
+std_price=sd(diamonds$price)
+ggplot(data=diamonds, aes(x=price))+
+  geom_histogram(aes(y=..density..)) +  # scale histogram y
+  geom_density(col = "blue",size=1)+
+  geom_vline(aes(xintercept=avg_price),linetype="dashed")
+```
+
+### BAR CHART
+
+```{r}
+ggplot(data=diamonds, aes(x=clarity,fill=cut))+
+  geom_bar(position="dodge",size=1)
+```
+
+### Density Plot
+```{r}
+ggplot(data=diamonds, aes(x=carat))+
+  geom_density(kernel="gaussian")
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### BOXPLOT
+
+```{r}
+ggplot(data=diamonds, aes(y=depth,x=cut,fill=clarity))+
+  geom_boxplot()
+```
+
+
+### COLUMN CHART
+
+```{r}
+ggplot(data=diamonds, aes(x=clarity,y=price,fill=cut))+
+  geom_col(position="dodge")
+
+ggplot(data=diamonds, aes(x=carat, fill=color))+
+  geom_density(adjust=1, kernel="gaussian")+
+facet_grid(rows=vars(color))
+
+ggplot() +
+  geom_point(data = diamonds,
+             mapping = aes(x = carat, y = price, colour = clarity))
+
+```
+
